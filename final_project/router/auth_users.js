@@ -46,9 +46,10 @@ regd_users.post("/login", (req,res) => {
   
 });
 //check user has reviewed befor or not
-const userReviewed= (username)=>{
-    let userIn=books[isbn].review.filter((user)=>{
-        return username === user;
+const userReviewed= (username,isbn)=>{
+    const arrayBooks= books[isbn]["reviews"]
+    let userIn=books[isbn]["reviews"]["username"].filter((user)=>{
+        return user.username === username;
     })
     if (userIn.length>0)
     {
@@ -61,21 +62,30 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
   //Write your code here---
   const isbn = req.params.isbn;
   const review= req.query.review;
-  if(review)
+  const username = req.session.authorization.username;
+  if (review)
   {
-    if(userReviewed(username))
-    {
-        books[isbn].review[username]= review;
-    }
-    else{
-        books[isbn].review.push({username:review})
-
-    }
-
+    books[isbn]["reviews"][username]= review;
+    return res.status(200).json("review has been added.");
   }
-  else return res.status(400).json("enter valid review")
+  else{
+    return res.status(404).json("enter valid review");
+  }
   
 });
+// endpoint for delete review
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    const isbn= req.params.isbn;
+    const username = req.session.authorization.username;
+if (books[isbn]["reviews"][username])
+{
+    books[isbn]["reviews"][username]= "user delete it.";
+    return res.status(200).json("review has been deleted.");
+}
+else{
+    return res.status(400).json("can't find your review.")
+}
+})
 
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
